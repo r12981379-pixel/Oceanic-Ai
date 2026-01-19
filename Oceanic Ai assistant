@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Oceanic AI</title>
+
+<!-- Favicon & PWA -->
+<link rel="icon" href="https://cdn.freebiesupply.com/logos/large/2x/oceanic-systems-logo-black-and-white.png" type="image/png">
+<link rel="apple-touch-icon" href="https://cdn.freebiesupply.com/logos/large/2x/oceanic-systems-logo-black-and-white.png">
+<link rel="shortcut icon" href="https://cdn.freebiesupply.com/logos/large/2x/oceanic-systems-logo-black-and-white.png">
+<link rel="manifest" href="manifest.json">
+
+<style>
+/* BODY & BACKGROUND */
+body {
+  margin:0;
+  font-family:Arial;
+  color:#00ffff;
+  overflow-x:hidden;
+  background: url("https://i.ibb.co/OceanBackground.jpg") no-repeat center center fixed;
+  background-size: cover;
+}
+
+/* WAVES */
+.wave{
+  position:absolute;width:300%;height:150%;top:-50%;left:-100%;
+  background:url('https://i.ibb.co/8r9P0Ds/wave.png') repeat-x;
+  opacity:.3; animation:wave 15s linear infinite;
+}
+.wave:nth-child(2){animation-duration:20s;opacity:.5}
+.wave:nth-child(3){animation-duration:25s;opacity:.7}
+@keyframes wave{0%{transform:translateX(0)}100%{transform:translateX(50%)}}
+
+/* SCREENS */
+.screen{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;padding:10px;box-sizing:border-box;
+}
+input{padding:10px;border-radius:6px;border:none;margin:5px;width:90%;max-width:250px;}
+button{padding:10px 15px;border:none;border-radius:6px;background:#00ffff;color:black;font-weight:bold;cursor:pointer;transition:all 0.2s ease;}
+button:hover{background:#00eeff;transform:scale(1.05);}
+
+/* CHAT BOX */
+#chat-box{
+  width:95%;max-width:600px;height:300px;background:rgba(0,0,0,.4);
+  border-radius:10px;padding:10px;overflow-y:auto;margin:10px 0;
+}
+.chat-message{opacity:0;transform:translateX(50px);animation:slideIn 0.5s forwards;margin-bottom:5px;}
+@keyframes slideIn{to{opacity:1;transform:translateX(0);}}
+
+/* TYPING INDICATOR */
+#typing-indicator{color:#0ff;font-style:italic;margin-bottom:5px;display:none;}
+
+/* ANIMATED TEXT */
+.animated span{display:inline-block;animation:float 1s ease forwards;opacity:0;}
+@keyframes float{0%{transform:translateY(5px);opacity:0}100%{transform:translateY(0);opacity:1}}
+.pro span{text-shadow:0 0 10px cyan,0 0 20px cyan;}
+.pro2 span{text-shadow:0 0 5px blue,0 0 10px blue;}
+.pro3 span{text-shadow:0 0 10px gold,0 0 20px gold;}
+
+/* PANELS */
+#subscription,#plan-change,#admin-panel{width:95%; max-width:600px; background:rgba(0,0,0,0.5); border-radius:10px; padding:15px; margin:10px 0; box-sizing:border-box;}
+#plan-change select{padding:8px;border-radius:6px;border:none;margin-right:5px;width:120px;}
+
+/* BADGES */
+.badge{display:inline-block;margin-left:10px;padding:3px 8px;border-radius:12px;font-size:0.8em;font-weight:bold;color:black;animation:glow 1.5s infinite alternate;}
+.badge-pro2{background:blue;text-shadow:0 0 5px #00f,0 0 10px #00f;}
+.badge-pro3{background:gold;text-shadow:0 0 10px #ff0,0 0 20px #ffd700;}
+@keyframes glow{0%{box-shadow:0 0 5px rgba(255,255,255,0.2);}50%{box-shadow:0 0 15px rgba(255,255,255,0.6);}100%{box-shadow:0 0 5px rgba(255,255,255,0.2);}}
+
+/* MOBILE */
+@media screen and (max-width:600px){#chat-box{height:250px;} button{padding:8px 12px;font-size:0.9em;}}
+</style>
+</head>
+<body>
+
+<!-- WAVES -->
+<div class="wave"></div><div class="wave"></div><div class="wave"></div>
+
+<!-- LOADING -->
+<div id="load" class="screen">
+  <img src="https://cdn.freebiesupply.com/logos/large/2x/oceanic-systems-logo-black-and-white.png" alt="Oceanic AI Logo" width="150">
+  <h1>🌊 Oceanic AI</h1>
+  <p>Loading...</p>
+</div>
+
+<!-- AUTH -->
+<div id="auth" class="screen" style="display:none">
+<h2>Sign Up</h2>
+<input id="su-email" placeholder="Email">
+<input id="su-pass" type="password" placeholder="Password">
+<input id="su-bday" type="date">
+<button onclick="signup()">Create Account</button>
+
+<h3>Login</h3>
+<input id="si-email" placeholder="Email">
+<input id="si-pass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="screen" style="display:none">
+<h2 id="user"></h2>
+<p id="last"></p>
+
+<!-- PLAN -->
+<div id="subscription">
+<p>Current Plan: <span id="plan">Free</span></p>
+<b>Upgrade Options:</b><br>
+<a href="https://ko-fi.com/s/89ba1ef3b1" target="_blank"><button>Buy Pro 2 (Ko‑fi)</button></a>
+<button onclick="confirmPayment('Pro 2')">I Paid for Pro 2</button>
+<br><br>
+<a href="https://ko-fi.com/s/118111c977" target="_blank"><button>Buy Pro 3 (Ko‑fi)</button></a>
+<button onclick="confirmPayment('Pro 3')">I Paid for Pro 3</button>
+</div>
+
+<div id="plan-change">
+<label for="plan-select">Change Plan:</label>
+<select id="plan-select">
+<option value="Free">Free</option>
+<option value="Pro 2">Pro 2</option>
+<option value="Pro 3">Pro 3</option>
+</select>
+<button onclick="changePlan()">Update Plan</button>
+</div>
+
+<!-- CHAT -->
+<div id="chat-box"></div>
+<div id="typing-indicator">Oceanic AI is typing...</div>
+<input id="msg" placeholder="Type command">
+<button onclick="send()">Send</button>
+
+<!-- IMAGE UPLOAD -->
+<input type="file" id="image-upload" accept="image/*">
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+<h3>Owner/Admin Panel</h3>
+<p>Special controls for admins only</p>
+<button onclick="viewUsers()">View All Users</button>
+<button onclick="grantPro()">Grant Pro 2 / Pro 3</button>
+<div id="admin-output"></div>
+</div>
+
+<!-- RESTORE BACKUP -->
+<button onclick="restoreBackup()">Restore Chat Backup</button>
+
+<!-- NOTIFICATIONS -->
+<div id="notify" style="position:fixed;top:10px;right:10px;background:#00ffff;color:black;padding:10px;border-radius:6px;display:none;z-index:999;"></div>
+
+<!-- CREDIT -->
+<footer style="position:fixed;bottom:5px;width:100%;text-align:center;color:#00ffff;font-size:0.8em;">
+Made by r12981379@gmail.com
+</footer>
+
+<script>
+// LOADING
+setTimeout(()=>{load.style.display="none"; auth.style.display="flex";},2500);
+
+// STORAGE
+let users=JSON.parse(localStorage.getItem("oceanic"))||{};
+let cur=null, typingSpeed=30, glowColor="cyan", advancedCommands=[];
+let chatLimit=50, chatCount=0;
+const owners=["r12981379@gmail.com"];
+const admins=["fatihahsiti4820@outlook.com","fatihahsiti48@hotmail.com","fatihahsiti351@gmail.com"];
+
+// NOTIFICATIONS
+function notify(msg){let n=document.getElementById("notify"); n.innerText=msg; n.style.display="block"; setTimeout(()=>{n.style.display="none";},3000);}
+
+// SIGNUP & LOGIN
+function signup(){
+  let e=su-email.value,p=su-pass.value,b=su-bday.value;
+  if(!e||!p||!b)return notify("Fill all fields");
+  users[e]={pass:p,bday:b,plan:"Free",history:[],last:null,chatCount:0};
+  localStorage.setItem("oceanic",JSON.stringify(users));
+  notify("Account created ✅");
+}
+function login(){
+  let e=si-email.value,p=si-pass.value;
+  if(!users[e]||users[e].pass!=p)return notify("Wrong credentials ❌");
+  cur=users[e];
+  auth.style.display="none"; dash.style.display="flex";
+  chatCount=cur.chatCount||0;
+  updateDashboardUserInfo(); loadHistory(); updateChatInfo(); checkAdminPanel(); notify("Login successful ✅");
+}
+
+// CHAT LIMITS
+function setChatLimit(){if(!cur) return; if(cur.plan=="Pro 2") chatLimit=200; else if(cur.plan=="Pro 3") chatLimit=500; else chatLimit=50;}
+
+// TYPING INDICATOR
+function showTypingIndicator(callback){
+  let ti=document.getElementById("typing-indicator");
+  ti.style.display="block";
+  setTimeout(()=>{ti.style.display="none"; callback();},1000 + Math.random()*1000);
+}
+
+// SEND MESSAGE
+function send(){
+  if(!cur) return notify("Login first!");
+  setChatLimit();
+  if(chatCount>=chatLimit){notify(`⚠ Chat limit reached for ${cur.plan}`); return;}
+  let t=msg.value;if(!t)return; msg.value="";
+  chatCount++; cur.chatCount=chatCount;
+
+  showTypingIndicator(()=>{
+    add("You: "+t);
+    if(t.toLowerCase().includes("cheat")){add("Oceanic AI: ❌ No, I can't assist with that."); saveBackup(); return;}
+    let code="local part=Instance.new('Part')\npart.Parent=workspace";
+    add("Oceanic AI:"); add(code,true);
+    updateChatInfo(); save(); saveBackup();
+  });
+}
+
+// ADD MESSAGE
+function add(text,code=false){
+  let d=document.createElement("div");
+  if(code){
+    let pre=document.createElement("pre");
+    pre.textContent=text;
+    let b=document.createElement("button"); b.innerText="Copy"; b.onclick=()=>navigator.clipboard.writeText(text);
+    pre.appendChild(b); d.appendChild(pre);
+  }else{
+    d.className="chat-message";
+    if(cur.plan=="Pro 2") d.classList.add("pro2");
+    else if(cur.plan=="Pro 3") d.classList.add("pro3");
+    else if(cur.plan.includes("Pro")) d.classList.add("pro");
+    text.split("").forEach((c,i)=>{let s=document.createElement("span"); s.textContent=c; s.style.animationDelay=i*typingSpeed+"ms"; d.appendChild(s);});
+  }
+  chat-box.appendChild(d); chat-box.scrollTop=99999;
+  cur.history.push(text);
+}
+
+// LOAD HISTORY
+function loadHistory(){chat-box.innerHTML="";cur.history.forEach(t=>add(t));}
+
+// SAVE
+function save(){localStorage.setItem("oceanic",JSON.stringify(users));}
+
+// BACKUP
+function saveBackup(){if(!cur) return; let backup={history:cur.history,chatCount:cur.chatCount,plan:cur.plan}; localStorage.setItem("oceanicBackup_"+si-email.value,JSON.stringify(backup));}
+function restoreBackup(){if(!cur) return notify("Login first"); let data=localStorage.getItem("oceanicBackup_"+si-email.value); if(!data) return notify("No backup found"); let backup=JSON.parse(data); cur.history=backup.history||[]; cur.chatCount=backup.chatCount||0; cur.plan=backup.plan||"Free"; document.getElementById("plan").textContent=cur.plan; updateDashboardUserInfo(); loadHistory(); updateChatInfo(); notify("Chat backup restored ✅");}
+
+// DASHBOARD
+function updateDashboardUserInfo(){let email=si-email.value; let badgeHTML=""; if(cur.plan=="Pro 2") badgeHTML='<span class="badge badge-pro2">Pro 2</span>'; else if(cur.plan=="Pro 3") badgeHTML='<span class="badge badge-pro3">Pro 3</span>'; document.getElementById("user").innerHTML=email+badgeHTML;}
+function updateChatInfo(){if(!cur) return; last.innerText="Last login: "+cur.last+" | Chats left: "+(chatLimit-chatCount);}
+
+// PLAN
+function confirmPayment(tier){if(!cur){notify("Login first"); return;} if(tier=="Pro 2"){cur.plan="Pro 2"; enablePro2Features(); notify("Pro 2 Unlocked! ✅");} else if(tier=="Pro 3"){cur.plan="Pro 3"; enablePro3Features(); notify("Pro 3 Unlocked! ⭐");} document.getElementById("plan").textContent=cur.plan; save(); updateDashboardUserInfo(); document.querySelectorAll("#subscription button").forEach(btn=>{if(btn.innerText.includes("I Paid")) btn.style.display="none";});}
+function changePlan(){if(!cur){notify("Login first"); return;} let plan=document.getElementById("plan-select").value; cur.plan=plan; if(plan=="Pro 2") enablePro2Features(); else if(plan=="Pro 3") enablePro3Features(); else{typingSpeed=50; glowColor="cyan"; advancedCommands=[];} document.getElementById("plan").textContent=cur.plan; save(); updateDashboardUserInfo(); document.querySelectorAll("#subscription button").forEach(btn=>{btn.style.display=(plan=="Free")?"inline-block":"none";}); notify(`Plan changed to ${plan}`);}
+
+// PRO FEATURES
+function enablePro2Features(){typingSpeed=20; glowColor="blue"; advancedCommands=["spawn lava","create platform"];}
+function enablePro3Features(){typingSpeed=10; glowColor="gold"; advancedCommands=["spawn lava","create platform","spawn NPC","custom map"];}
+
+// ADMIN PANEL
+function checkAdminPanel(){if(!cur) return; if(owners.includes(si-email.value) || admins.includes(si-email.value)) document.getElementById("admin-panel").style.display="block";}
+function viewUsers(){let out=document.getElementById("admin-output"); out.innerHTML=""; for(let e in users){let u=users[e]; out.innerHTML+=`<p>${e} - Plan: ${u.plan} - Last login: ${u.last}</p>`;}}
+function grantPro(){let email=prompt("Enter user email:"); if(!users[email]) return notify("User not found"); let plan=prompt("Enter plan to grant: Pro 2 or Pro 3"); if(plan!="Pro 2" && plan!="Pro 3") return notify("Invalid plan"); users[email].plan=plan; if(cur && si-email.value===email){if(plan=="Pro 2") enablePro2Features(); else enablePro3Features(); updateDashboardUserInfo();} save(); notify(`${email} granted ${plan}!`);}
+
+// IMAGE UPLOAD
+document.getElementById("image-upload").addEventListener("change", function(){
+  const file = this.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.src = e.target.result;
+    img.style.maxWidth="90%"; img.style.borderRadius="10px"; img.style.margin="10px 0";
+    const d = document.createElement("div");
+    d.appendChild(img); document.getElementById("chat-box").appendChild(d); document.getElementById("chat-box").scrollTop=99999;
+    notify("Image uploaded!");
+  };
+  reader.readAsDataURL(file);
+});
+</script>
+</body>
+</html>
